@@ -25,7 +25,7 @@ pip3 install ws4py
 
 ### 客户端
 
-1.数据和初始化模型通过adb下载到本地
+1.数据和初始化模型通过命令行工具adb下载到Android设备本地
 
 ```
 cd End2end-Federated-Learning/data
