@@ -35,8 +35,8 @@ adb push mnist_data /data/local/tmp/mnist_data
 ```
 
 2. Modify the SERVER_URL in app/src/main/java/com/demo/MainActivity.java to the ip address of the your server
-3. 
-4. Connect the android device and run the project (must be in the same local area network as the server to run normally)
+ 
+3. Connect the android device and run the project (must be in the same local area network as the server to run normally)
 
 
 ## Related Work
