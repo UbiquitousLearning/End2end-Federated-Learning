@@ -15,7 +15,7 @@ Federated learning gets a lot of attention recently, but the existing work is ba
 
 ### Server
 
-1.Install python3.6, pip3, and install the following dependency packages
+1. Install python3.6, pip3, and install the following dependency packages
 
 ```
 pip3 install -U MNN
@@ -23,9 +23,20 @@ pip3 install cherrypy
 pip3 install ws4py
 ```
 
-2.Run server.py
+2. Run server.py
 
 ### Client
+1. The data and initialization model need to be downloaded to the local Android device through the command line tool adb
+
+```
+cd End2end-Federated-Learning/data
+adb push mnist.snapshot.mnn /data/local/tmp/mnn/mnist.snapshot.mnn
+adb push mnist_data /data/local/tmp/mnist_data
+```
+
+2. Modify the SERVER_URL in app/src/main/java/com/demo/MainActivity.java to the ip address of the your server
+3. 
+4. Connect the android device and run the project (must be in the same local area network as the server to run normally)
 
 
 ## Related Work
