@@ -43,4 +43,6 @@ adb push mnist_data /data/local/tmp/mnist_data
 
 [MNN](https://github.com/alibaba/MNN)
 
-## Contact us: [Prof. Mengwei Xu](https://xumengwei.github.io/), [Prof. Shangguang Wang](http://www.sguangwang.com/)
+## Contact us
+
+[Prof. Mengwei Xu](https://xumengwei.github.io/), [Prof. Shangguang Wang](http://www.sguangwang.com/)
