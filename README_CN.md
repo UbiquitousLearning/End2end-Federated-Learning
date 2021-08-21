@@ -36,3 +36,8 @@ adb push mnist_data /data/local/tmp/mnist_data
 2.修改app/src/main/java/com/demo/MainActivity.java中的SERVER_URL为服务端的ip地址
 
 3.连接android设备，并运行项目（必须和服务端在同一个局域网下才能正常运行）
+
+
+## 联系我们
+
+[徐梦玮教授](https://xumengwei.github.io/), [王尚广教授](http://www.sguangwang.com/)
