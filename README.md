@@ -45,4 +45,4 @@ adb push mnist_data /data/local/tmp/mnist_data
 
 ## Contact us
 
-[Prof. Mengwei Xu](https://xumengwei.github.io/) ([mwx@bupt.edu.cn](mwx@bupt.edu.cn)), [Prof. Shangguang Wang](http://www.sguangwang.com/) ([sgwang@bupt.edu.cn](sgwang@bupt.edu.cn))
+[Prof. Mengwei Xu](https://xumengwei.github.io/) (mwx@bupt.edu.cn), [Prof. Shangguang Wang](http://www.sguangwang.com/) (sgwang@bupt.edu.cn)
