@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Aggregation Server Web</title>
+	<link rel="stylesheet" href="//unpkg.com/layui@2.6.6/dist/css/layui.css">
+	<script src="//unpkg.com/layui@2.6.6/dist/layui.js"></script>
+	<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+	<style type="text/css">
+		div {padding:10px 0}
+		#title_and_config {border-width:10px;border-style:none none solid none;border-color:#87CEFA}
+		#epoch {border-width:3px;border-style:none none dashed none;border-color:#CCCCCC}
+		#client_message {border-width:3px;border-style:none none none dashed;border-color:#CCCCCC}
+		button {border-radius:3px;padding:5px;font-size:18px;font-weight:bold;font-family:Arial}
+		table {text-align:center;font-size:18px;font-family:Arial}
+		table .red {color:#FF0000}
+		table .yellow {color:#FFD21C}
+		table .green {color:#3CB371}
+		table .blue {color:#87CEFA}
+		table th {border-width:3px;padding:3px}
+		table td {border-width:3px;padding:3px}
+	</style>
+</head>
+
+<body>
+	<!--Title, config, send task, client num-->
+	<div id="title_and_config" style="width:100%;display:flex">
+		<div id="send_task" style="width:15%;margin:auto">
+			<center><button type="button" onclick="send_task()" style="background:#3CB371">start</button></center>
+		</div>
+		<div id="config" style="width:15%;margin:auto">
+			<center><button type="layui-btn" bind_thing="show_config" style="background:#87CEFA">config</button></center>
+		</div>
+		<div id="title" style="width:40%;margin:auto">
+			<h1 align="center" style="font-weight:bold;font-family:Cambria">Aggregation Server Web</h1>
+		</div>
+		<div id="client_num" style="width:30%;margin:auto">
+			<p id="get_client_num" align="center" style="padding:5px 0;font-size:18px;font-weight:bold;font-family:Arial;color:#87CEFA"></p>
+			<p id="get_ready_num" align="center" style="padding:5px 0;font-size:18px;font-weight:bold;font-family:Arial;color:#FF0000"></p>
+		</div>
+	</div>
+	<!--Epoch time, echarts, client message table-->
+	<div id="running_message" style="width:100%;display:flex">
+		<div id="epoch_and_echarts" style="width:60%">
+			<div id="epoch" style="width:100%;display:flex;font-size:18px;font-weight:bold;font-family:Arial">
+				<div id="epoch_num" style="width:50%;margin:auto">
+					<p id="global_epoch_num" align="center"></p>
+				</div>
+				<div id="time_message" style="width:50%" align="center"></div>
+			</div>
+			<div id="echarts" style="height:400px"></div>
+		</div>
+		<div id="client_message" style="width:40%">
+			<p align="center" style="font-size:24px;font-weight:bold;font-family:Cambria">Client Message:</p>
+			<div id="client_table"></div>
+		</div>
+	</div>
+	
+	<script>
+		<!--config button-->
+		var local_epochs = 0;
+		var batch_size = 0;
+		var learning_rate = 0;
+		var global_epochs = 0;
+		var device_number = 0;
+		layui.use(function(){
+			var layer = layui.layer,
+			form = layui.form,
+			laypage = layui.laypage,
+			element = layui.element,
+			laydate = layui.laydate,
+			util = layui.util;
+			
+			util.event('bind_thing', {
+				'show_config': function(){
+					layer.open({
+						type: 1,
+						resize: false,
+						shadeClose: true,
+						title: 'config',
+						content: ['<ul class="layui-form" style="margin: 10px;">',
+								  '<li class="layui-form-item">',
+								  '<label class="layui-form-label">local epochs</label>',
+								  '<div class="layui-input-block">',
+								  '<input class="layui-input" name="local epochs" placeholder="' + local_epochs.toString() + '">',
+								  '</div>',
+								  '</li>',
+								  '<li class="layui-form-item">',
+								  '<label class="layui-form-label">batch size</label>',
+								  '<div class="layui-input-block">',
+								  '<input class="layui-input" name="batch size" placeholder="' + batch_size.toString() + '">',
+								  '</div>',
+								  '</li>',
+								  '<li class="layui-form-item">',
+								  '<label class="layui-form-label">learning rate</label>',
+								  '<div class="layui-input-block">',
+								  '<input class="layui-input" name="learning rate" placeholder="' + learning_rate.toString() + '">',
+								  '</div>',
+								  '</li>',
+								  '<li class="layui-form-item">',
+								  '<label class="layui-form-label">global epochs</label>',
+								  '<div class="layui-input-block">',
+								  '<input class="layui-input" name="global epochs" placeholder="' + global_epochs.toString() + '">',
+								  '</div>',
+								  '</li>',
+								  '<li class="layui-form-item">',
+								  '<label class="layui-form-label">device number</label>',
+								  '<div class="layui-input-block">',
+								  '<input class="layui-input" name="device number" placeholder="' + device_number.toString() + '">',
+								  '</div>',
+								  '</li>',
+								  '<li class="layui-form-item" style="text-align:center;">',
+								  '<button type="submit" lay-submit lay-filter="*" class="layui-btn">confirm</button>',
+								  '</li>',
+								  '</ul>'].join(''),
+						success: function(layero){
+							layero.find('.layui-layer-content').css('overflow', 'visible');
+							form.render().on('submit(*)', function(data){
+								local_epochs = parseInt(data.field["local epochs"]);
+								batch_size = parseInt(data.field["batch size"]);
+								learning_rate = parseFloat(data.field["learning rate"]);
+								global_epochs = parseInt(data.field["global epochs"]);
+								device_number = parseInt(data.field["device number"]);
+								layer.msg(JSON.stringify(data.field));
+							});
+						}
+					});
+				}
+			});
+		});
+		<!--Timestamp, global epoch-->
+		var epoch_timestamp = 0;
+		var pre_epoch_time = 0;
+		var this_epoch_time = 0;
+		var epoch = 0;
+		
+		<!--Echarts initialization-->
+		var myChart = echarts.init(document.getElementById("echarts"));
+		        
+		var option = {
+		    title: {
+		        text: "model_index",
+		        x: "center",
+		        y: "top",
+				textStyle: {
+					fontFamily: "Cambria"
+				}
+		    },
+		    tooltip: {},
+		    legend: {
+		        data:[
+		        {name: "loss"},
+		        {name: "acc"}
+		        ],
+		        x: "center",
+		        y: "bottom",
+		        textStyle: {
+		            fontSize: 18,
+					fontFamily: "Arial"
+		        }
+		    },
+		    xAxis: {
+		        name: "epoch",
+		        data: [],
+		        nameTextStyle: {
+		            color: "#87CEFA",
+		            fontSize: 16,
+					fontStyle: "italic",
+					fontFamily: "Arial",
+					padding: [52, 0, 0, -343]
+		        },
+		        axisLabel: {
+		            textStyle: {
+		                color: "#87CEFA",
+		                fontSize: 16     
+		            },
+		        }
+		    },
+		    yAxis: [
+		        {
+		            type: "value",
+		            name: "loss",
+		            nameTextStyle: {
+		                color: "#FF0000",
+		                fontSize: 16,
+						fontStyle: "italic",
+						fontFamily: "Arial"
+		            },
+		            axisLabel: {
+		                textStyle: {
+		                    color: "#FF0000",
+		                    fontSize: 16
+		                },
+		            }
+		        },
+		        {
+		            type: "value",
+		            name: "acc",
+		            nameTextStyle: {
+		                color: "#3CB371",
+		                fontSize: 16,
+						fontStyle: "italic",
+						fontFamily: "Arial"
+		            },
+		            axisLabel: {
+		                textStyle: {
+		                    color: "#3CB371",
+		                    fontSize: 16     
+		                },
+		            }
+		        }
+		    ],
+		    series: [
+		        {
+		            name: 'loss',
+		            type: 'line',
+		            itemStyle: {
+		                normal: {
+		                    lineStyle: {
+		                        color: '#FF0000'
+		                    },
+		                    color: '#FF0000',
+		                }
+		            },
+		            yAxisIndex: 0,
+		            data: []
+		        },
+		        {
+		            name: 'acc',
+		            type: 'line',
+		            itemStyle: {
+		                normal: {
+		                    lineStyle: {
+		                        color: '#3CB371'
+		                    },
+		                    color: '#3CB371',
+		                }
+		            },
+		            yAxisIndex: 1,
+		            data: []
+		        }
+		    ]
+		};	
+		        
+		myChart.setOption(option);
+		
+		<!--Display message is polled every second-->
+		$(function(){
+		    window.setInterval(function(){
+		        $.get("/get_client_num", function (data, status) {
+		            $("#get_client_num").text(data)
+		        })
+		        $.get("/get_ready_num", function (data, status) {
+		            $("#get_ready_num").text(data)
+		        })
+				$.get("/get_global_epoch_num", function (data, status) {
+				    $("#global_epoch_num").text(data)
+				})
+				$.get("/get_global_epoch_timestamp", function (data, status) {
+				    get_epoch_time(data)
+				})
+				$.get("/get_model_index", function (data, status) {
+				    change(data)
+				})
+				$.get("/get_client_msg", function (data, status) {
+				    show_msg(data)
+				})
+		    },1000);
+		
+		});
+		
+		function send_task() {
+		    epoch = 0;
+		    pre_epoch_time = 0;
+		    this_epoch_time = 0;
+		    option.xAxis.data = [];
+		    option.series[0].data = [];
+		    option.series[1].data = [];
+		    myChart.setOption(option);
+		    $.get("/send_task", function (data, status) {
+		        epoch_timestamp = parseFloat(data);
+		        alert("status:" + status)
+		    })
+		}
+		
+		function get_epoch_time(data) {
+		    if (epoch_timestamp != 0) {
+		        var timestamp = parseFloat(data);
+		        if (timestamp != epoch_timestamp) {
+		            pre_epoch_time = this_epoch_time;
+		            this_epoch_time = timestamp - epoch_timestamp;
+		            epoch_timestamp = timestamp;
+		        }
+		    }
+		    var element = document.getElementById("time_message");
+		    var pre_time_text = "<p style='padding:5px 0'>pre epoch time:" + pre_epoch_time.toFixed(3).toString() +"s";
+		    var this_time_text = "<p style='padding:5px 0'>this epoch time:" + this_epoch_time.toFixed(3).toString() +"s ";
+			if (this_epoch_time > pre_epoch_time) {
+				this_time_text += "<span style='color:#FF0000'>&#8593</span></p>";
+			}
+			else if (this_epoch_time < pre_epoch_time) {
+				this_time_text += "<span style='color:#3CB371'>&#8595</span></p>";
+			}
+		    element.innerHTML = pre_time_text + this_time_text;
+		}
+		
+		function change(data) {
+		    if (data != "no")
+		    {
+		        epoch += 1;
+		        var loss = data.split(" ")[1];
+		        var acc = data.split(" ")[2];
+		        option.xAxis.data.push(epoch);
+		        option.series[0].data.push(parseFloat(loss));
+		        option.series[1].data.push(parseFloat(acc));
+		        myChart.setOption(option);
+		    }
+		}
+		
+		function show_msg(data) {
+		    var msg = JSON.parse(data);
+		    var element = document.getElementById("client_table");
+		    var inner = "<table border='3' align='center'><tr><th>IP</th><th>status</th><th>upload_time</th></tr>";
+		    for (var ip in msg) {
+		        var msgstr = "";
+		        switch (msg[ip]["status"])
+		        {
+		            case "connect": msgstr = "<tr class='blue'";break;
+		            case "ready": msgstr = "<tr class='red'";break;
+		            case "running": msgstr = "<tr class='green'";break;
+		            case "waiting": msgstr = "<tr class='yellow'";break;
+		        }
+				msgstr = msgstr + "><td>" + ip + "</td>";
+		        msgstr = msgstr + "<td>" + msg[ip]["status"] + "</td><td>" + msg[ip]["time"] + "s</td></tr>";
+		        inner += msgstr;
+		    }
+		    inner += "</table>";
+		    element.innerHTML = inner;
+		}
+
+	</script>
+</body>
+
+</html>
